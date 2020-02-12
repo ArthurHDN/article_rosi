@@ -86,19 +86,13 @@ class RosiCmdVelClass():
 		# c_y = -0.35
 		# r_x = 33 
 		# r_y = 3.55
+		# fi = ((self.pos_x - c_x)/r_x)**4 + ((self.pos_y - c_y)/r_y)**4 - 1
+		# grad_fi = [(4/r_x)*(((self.pos_x - c_x)/r_x)**3) , (4/r_y)*(((self.pos_y - c_y)/r_y)**3)]
+		# Beta_fi = [ -(4/r_y)*((self.pos_y - c_y)/r_y)**3 , (4/r_x)*((self.pos_x - c_x)/r_x)**3]
 
-		c_x = 0
-		c_y = 0
-		r_x = 1
-		r_y = 1
-
-		fi = ((self.pos_x - c_x)/r_x)**4 + ((self.pos_y - c_y)/r_y)**4 - 1
-		grad_fi = [(4/r_x)*(((self.pos_x - c_x)/r_x)**3) , (4/r_y)*(((self.pos_y - c_y)/r_y)**3)]
-		Beta_fi = [ -(4/r_y)*((self.pos_y - c_y)/r_y)**3 , (4/r_x)*((self.pos_x - c_x)/r_x)**3]
-
-		# fi = ((self.pos_x + c_x)/r_x)**2 + ((self.pos_y + c_y)/r_y)**2 - 1
-		# grad_fi = [(2/r_x)*((self.pos_x + c_x)/r_x)**1 , (2/r_y)*((self.pos_y + c_y)/r_y)**1]
-		# Beta_fi = [ -(2/r_y)*((self.pos_y + c_y)/r_y)**1 , (2/r_x)*((self.pos_x + c_x)/r_x)**1]
+		fi = self.pos_x**4 + self.pos_y**4 - 1
+		grad_fi = [4*(self.pos_x)**3 , 4*(self.pos_y)**3]
+		Beta_fi = [-4*(self.pos_y)**3 , 4*(self.pos_x)**3]
 
 		G = -2/pi * atan(fi)
 		H = sqrt(1 - G**2)
@@ -131,10 +125,10 @@ class RosiCmdVelClass():
 	# Callback da posicao
 	def callback_pose(self, data):
 
-		c_x = -30
-		c_y = -0.35
-		r_x = 33.5
-		r_y = 3.5
+		c_x = -33
+		c_y = -0.5
+		r_x = 31
+		r_y = 4
 
 		q_x = data.orientation.x
 		q_y = data.orientation.y

@@ -2,31 +2,35 @@
 
 	<!-- - - - - Parametros usados - - - - - -->
 		<!-- Mostrar a imagem de profundidade do kinect. Sete para True caso queira ve-la -->
-		<param name="mostar_kinect_depth" type="bool" value="False" />
-		<!-- Mostrar a o fogo identificado. Sete para True caso queira ver -->
-		<param name="mostar_fire_cam" type="bool" value="False" />
-		<!-- Caminho ate onde se encontra o arquivo do mapa o desafio -->
-		<param name="map_path" type="str" value="$(find article_rosi)/images/mapa_rosi.jpg" />
-		<!-- Fator de escada do mapa a ser mostrado. Valor 1 significa uma imagem de 1900px x 446px -->
-		<param name="map_scale_factor" type="double" value="0.5"/>
-		<!-- Indicator de rotina de toque. Nao altere -->
-		<param name="touch_mode" type="bool" value="False" />
+		<param name="mostar_kinect_depth" type="bool" value="True" />
 		<!-- Carregar arquivo com parametros para a simualacao no VREP -->
 		<rosparam command="load" file="$(find article_rosi)/config/simulation_parametersMAISLEVE.yaml" />
+		<!-- Indicator de rotina de toque. Nao altere -->
+		<param name="touch_mode" type="bool" value="False" />
+
+		<!-- Indicator de rotina de toque. Nao altere -->
+		<!-- param name="touch_mode" type="bool" value="False" /-->
+
+		<!-- Mostrar a o fogo identificado. Sete para True caso queira ver -->
+		<!--param name="mostar_fire_cam" type="bool" value="False" /-->
+
+		<!-- Caminho ate onde se encontra o arquivo do mapa o desafio -->
+		<!--param name="map_path" type="str" value="$(find article_rosi)/images/mapa_rosi.jpg" /-->
+
+		<!-- Fator de escada do mapa a ser mostrado. Valor 1 significa uma imagem de 1900px x 446px -->
+		<!--param name="map_scale_factor" type="double" value="0.5"/-->
 
 	<!-- - - - - Nos - - - - - -->
 		<!-- No que transforma comandos de velocidade em comandos para as rodas -->
 		<node name="Controle_baixo_nivel" pkg="article_rosi" type="vel_to_wheels.py" output = "screen" respawn="true" />
-	  <!-- No que une as informacoes de posicao (gps e imu) em um unico topico -->
+	  	<!-- No que une as informacoes de posicao (gps e imu) em um unico topico -->
 		<node name="Filtro_posicao" pkg="article_rosi" type="get_pose_from_sensors.py" output = "screen" respawn="true" />
-	  <!-- No que le a posicao e gera comandos de velocidade -->
+	  	<!-- No que le a posicao e gera comandos de velocidade -->
 		<node name="Campos_Vetorias" pkg="article_rosi" type="tarefa_v4.py" output = "screen" respawn="false" />
-
-		<!-- No que controla a posicao da camera pelo hokuyo -->
-		<!--node name="Coleta_TC" pkg="article_rosi" type="hokuyo_control.py" output = "screen" respawn="false" /-->
-
 		<!-- No que mostra a imagem de profundidade (DEPTH) do kinect-->
 		<node name="Profundidade_kinect" pkg="article_rosi" type="kinect_depth_show.py" output = "screen" respawn="true" />
+		<!-- No que controla a posicao da camera pelo hokuyo -->
+		<node name="Coleta_TC" pkg="article_rosi" type="hokuyo_control.py" output = "screen" respawn="false" />
 
 		<!-- No que detecta fogo -->
 		<!-- node name="Detector_fogo" pkg="article_rosi" type="fire_show.py" output = "screen" respawn="true" /-->
