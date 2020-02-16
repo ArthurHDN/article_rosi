@@ -47,9 +47,9 @@ class RosiCmdVelClass():
 		self.a_ant = self.a
 
 		# Parametros curva
-		self.c_x = -29.5 
+		self.c_x = -25 
 		self.c_y = -0.1
-		self.r_x = 36
+		self.r_x = 34
 		self.r_y = 3.5
 
 		freq = 10.0
@@ -151,10 +151,10 @@ class RosiCmdVelClass():
 				# print('x,y:' + ' ' + str(self.pos_x) + ' ' + str(self.pos_y))
 				# print('Nao calculou')
 				return (0,0)
-		G = -2/pi * atan(fi)
+		G = -2/pi * atan(8*fi)
 		H = sqrt(1 - G**2)
 
-		norm_grad = sqrt(grad_fi[0]**2 + grad_fi[1]**2)
+		norm_grad = 2*sqrt(grad_fi[0]**2 + grad_fi[1]**2)
 
 		dt = self.a * (y/r_y) * dFdy 
 		

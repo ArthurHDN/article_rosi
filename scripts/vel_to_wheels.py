@@ -20,7 +20,7 @@ class RosiNodeClass():
 	ycir = 0.531
 
 	#Distancia entre as rodas direitas e esquerdas
-	L = 0.8
+	L = 0.5
 
 	# Construtor
 	def __init__(self):
