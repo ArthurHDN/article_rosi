@@ -16,16 +16,18 @@ from geometry_msgs.msg import Twist, Pose
 from std_msgs.msg import String, Float32
 from sensor_msgs.msg import Image
 # Ferramentas para o processamento dos dados
-from cv_bridge import CvBridge, CvBridgeError
+#from cv_bridge import CvBridge, CvBridgeError
 from tf.transformations import euler_from_quaternion, quaternion_from_euler
 from math import sin, cos, sqrt, atan, pi
+# path para escrever arquivos txt
+import os 
 
 # Classe que contem os metodos necessarios para o programa
 class RosiCmdVelClass():
 
 	# Constantes de controle
 	Kp = 0.5 # Ganho proporcional
-	d = 0.2 # Distancia entre o centro de massa e o ponto a ser controlado por Feedback Linearization
+	d = 0.1 # Distancia entre o centro de massa e o ponto a ser controlado por Feedback Linearization
 	Err = 0.5 # Erro admitido de distancia ao ponto
 
 	curve_type = 2
@@ -64,9 +66,13 @@ class RosiCmdVelClass():
 
 		vel_msg = Twist()
 
+		THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
+		my_file_path = os.path.join(THIS_FOLDER, '../text/myfile.txt')
+
 		# write_handle = open('/home/arthur/vrep_ws/src/article_rosi/text/new.txt', 'w')
-		# write_handle.write('Abertura')
-		# write_handle.close()
+		write_handle = open(my_file_path, 'w')
+		write_handle.write('')
+		write_handle.close()
 
 		# Loop principal que manda as velocidades para o robo ate que ele chegue nas proximidades do ponto
 		while not rospy.is_shutdown():
@@ -81,16 +87,15 @@ class RosiCmdVelClass():
 
 			self.pub_cmd_vel.publish(vel_msg)
 			node_sleep_rate.sleep()
-			# with open('new.txt', 'a') as write_handle:
-			#  	msg = str(self.pos_x) + ' ' + str(self.pos_y) + ' ' + str(self.time) + ' ' + str(self.c_x) + ' ' + str(self.c_y) + ' ' + str(self.r_x) + ' ' + str(self.r_y)
-			#  	write_handle.write(msg)
+			with open(my_file_path, 'a') as write_handle:
+			  	msg = str(self.time) + '\t' + str(self.pos_x) + '\t' + str(self.pos_y) + '\t' + str(self.angle) + '\t' + str(self.c_x) + '\t' + str(self.c_y) + '\t' + str(self.r_x) + '\t' + str(self.r_y) + '\t' + str(self.a) + '\n'
+			  	write_handle.write(msg)
 
 	def verifica_a(self):
 		try:
 			self.a = rospy.get_param('a')
 		except KeyError:
 			return
-		#print('new a =', self.a)
 		if self.a != self.a_ant:
 			self.t0 = self.time
 			self.b = self.r_y
@@ -127,7 +132,7 @@ class RosiCmdVelClass():
 				grad_fi = [ 0 , 1]
 				Beta_fi = [-1 , 0]
 				dFdy = 1
-			elif x <= 1 and sx >= -1 and y < 0:
+			elif x <= 1 and x >= -1 and y < 0:
 				fi = -y-1
 				grad_fi = [0 ,-1]
 				Beta_fi = [1 , 0]
@@ -155,12 +160,12 @@ class RosiCmdVelClass():
 		
 		P = [-(dt*grad_fi[0])/norm_grad , (dt*grad_fi[1])/norm_grad ]
 
-		u = G*grad_fi[0] + H*Beta_fi[0] +P[0]
-		v = G*grad_fi[1] + H*Beta_fi[1] +P[1]
+		u = G*grad_fi[0] + H*Beta_fi[0] + P[0]
+		v = G*grad_fi[1] + H*Beta_fi[1] + P[1]
 		
 		try: 
-			vel_x = u/(2*norm_grad)
-			vel_y = v/(2*norm_grad)
+			vel_x = u/norm_grad
+			vel_y = v/norm_grad
 		except ZeroDivisionError:
 			print('norma grad = 0')
 			vel_x = 0
