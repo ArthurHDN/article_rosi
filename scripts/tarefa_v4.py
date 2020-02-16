@@ -13,7 +13,7 @@ import cv2
 import numpy as np
 # Tipos de mensagens utilizadas
 from geometry_msgs.msg import Twist, Pose
-from std_msgs.msg import String
+from std_msgs.msg import String, Float32
 from sensor_msgs.msg import Image
 # Ferramentas para o processamento dos dados
 from cv_bridge import CvBridge, CvBridgeError
@@ -36,19 +36,44 @@ class RosiCmdVelClass():
 		self.pos_x = 0.1
 		self.pos_y = 0.1
 		self.angle = 0.1
+
+		# Parametros de variacao no tempo
+		self.time = 0
+		self.t0 = 0
+		self.a = 0
+		self.b = 3.5
+		self.a_ant = self.a
+
+		# Parametros curva
+		self.c_x = -29.5 
+		self.c_y = -0.1
+		self.r_x = 36
+		self.r_y = 3.5
+
+		freq = 10.0
+
 		# Topicos que subscreve e publica
 		self.sub_pose = rospy.Subscriber('/aai_rosi_pose', Pose, self.callback_pose)
+		self.sub_time = rospy.Subscriber('/simulation/time', Float32, self.callback_time)
 		self.pub_cmd_vel = rospy.Publisher('/aai_rosi_cmd_vel', Twist, queue_size=1)
 		# Frequencia de publicacao
-		node_sleep_rate = rospy.Rate(10)
+		node_sleep_rate = rospy.Rate(freq)
 
 		# Mensagem de inicializacao
 		rospy.loginfo('Controle de alto nivel iniciado: Campos Vetorias Artificias')
 
 		vel_msg = Twist()
 
+		# write_handle = open('/home/arthur/vrep_ws/src/article_rosi/text/new.txt', 'w')
+		# write_handle.write('Abertura')
+		# write_handle.close()
+
 		# Loop principal que manda as velocidades para o robo ate que ele chegue nas proximidades do ponto
 		while not rospy.is_shutdown():
+
+			# self.time += (1.0/freq)
+
+			self.verifica_a()
 
 			[V, W] = self.calc_vel()
 			vel_msg.linear.x = V
@@ -56,42 +81,83 @@ class RosiCmdVelClass():
 
 			self.pub_cmd_vel.publish(vel_msg)
 			node_sleep_rate.sleep()
+			# with open('new.txt', 'a') as write_handle:
+			#  	msg = str(self.pos_x) + ' ' + str(self.pos_y) + ' ' + str(self.time) + ' ' + str(self.c_x) + ' ' + str(self.c_y) + ' ' + str(self.r_x) + ' ' + str(self.r_y)
+			#  	write_handle.write(msg)
+
+	def verifica_a(self):
+		try:
+			self.a = rospy.get_param('a')
+		except KeyError:
+			return
+		#print('new a =', self.a)
+		if self.a != self.a_ant:
+			self.t0 = self.time
+			self.b = self.r_y
+			self.a_ant = self.a
+			print('Valor de a atualizado')
+
 
 	def calc_vel(self):
+
+		self.r_y = self.a*(self.time - self.t0) + self.b
+
+		c_x = self.c_x
+		c_y = self.c_y
+		r_x = self.r_x / 2
+		r_y = self.r_y
+
+		x = (self.pos_x - c_x)/r_x
+		y = (self.pos_y - c_y)/r_y
+
+		print('t =', self.time)
+		print('t0 =', self.t0)
+		print('a =', self.a)
+		print('r =', self.r_y)
+
 		if self.curve_type == 1:
 			# Smooth Square
-			fi = self.pos_x**4 + self.pos_y**4 - 1
-			grad_fi = [4*(self.pos_x)**3 , 4*(self.pos_y)**3]
-			Beta_fi = [-4*(self.pos_y)**3 , 4*(self.pos_x)**3]
+			fi = x**4 + y**4 - 1
+			grad_fi = [4*(x)**3 , 4*(y)**3]
+			Beta_fi = [-4*(y)**3 , 4*(x)**3]
 		elif self.curve_type == 2:
 			# Race Track
-			if self.pos_x <= 1 and self.pos_x >= -1 and self.pos_y >= 0:
-				fi = self.pos_y-1
+			if x <= 1 and x >= -1 and y >= 0:
+				fi = y-1
 				grad_fi = [ 0 , 1]
 				Beta_fi = [-1 , 0]
-			elif self.pos_x <= 1 and self.pos_x >= -1 and self.pos_y < 0:
-				fi = -self.pos_y-1
+				dFdy = 1
+			elif x <= 1 and sx >= -1 and y < 0:
+				fi = -y-1
 				grad_fi = [0 ,-1]
 				Beta_fi = [1 , 0]
-			elif self.pos_x < -1:
-				fi = (self.pos_x+1)**2 + self.pos_y**2 -1
-				grad_fi = [ 2*(self.pos_x+1) , 2*self.pos_y]
-				Beta_fi = [-2*self.pos_y , 2*(self.pos_x+1)]
-			elif self.pos_x > 1:
-				fi = (self.pos_x-1)**2 + self.pos_y**2 -1
-				grad_fi = [ 2*(self.pos_x-1) , 2*self.pos_y]
-				Beta_fi = [-2*self.pos_y , 2*(self.pos_x-1)]
+				dFdy = -1
+			elif x < -1:
+				fi = (x+1)**2 + y**2 -1
+				grad_fi = [ 2*(x+1) , 2*y]
+				Beta_fi = [-2*y , 2*(x+1)]
+				dFdy = 2*y
+			elif x > 1:
+				fi = (x-1)**2 + y**2 -1
+				grad_fi = [ 2*(x-1) , 2*y]
+				Beta_fi = [-2*y , 2*(x-1)]
+				dFdy = 2*y
 			else:
-				print('x,y:' + ' ' + str(self.pos_x) + ' ' + str(self.pos_y))
-				print('Nao calculou')
+				# print('x,y:' + ' ' + str(self.pos_x) + ' ' + str(self.pos_y))
+				# print('Nao calculou')
 				return (0,0)
 		G = -2/pi * atan(fi)
 		H = sqrt(1 - G**2)
-		
-		u = G*grad_fi[0] + H*Beta_fi[0]
-		v = G*grad_fi[1] + H*Beta_fi[1]
 
 		norm_grad = sqrt(grad_fi[0]**2 + grad_fi[1]**2)
+
+		dt = self.a * (y/r_y) * dFdy 
+		
+		P = [-(dt*grad_fi[0])/norm_grad , (dt*grad_fi[1])/norm_grad ]
+
+		u = G*grad_fi[0] + H*Beta_fi[0] +P[0]
+		v = G*grad_fi[1] + H*Beta_fi[1] +P[1]
+		
 		try: 
 			vel_x = u/(2*norm_grad)
 			vel_y = v/(2*norm_grad)
@@ -99,6 +165,7 @@ class RosiCmdVelClass():
 			print('norma grad = 0')
 			vel_x = 0
 			vel_y = 0
+
 		# print('---------------------------------------')
 		# print('x,y:' + ' ' + str(self.pos_x) + ' ' + str(self.pos_y))
 		# print('G e H:' + ' ' + str(G) + ' ' + str(H))
@@ -112,20 +179,11 @@ class RosiCmdVelClass():
 
 		return (V_forward, W_angular)
 
+	def callback_time(self, data):
+		self.time = data.data
+
 	# Callback da posicao
 	def callback_pose(self, data):
-		if self.curve_type == 1:
-			c_x = -27
-			c_y = -0.5
-			r_x = 34
-			r_y = 4
-		elif self.curve_type == 2:
-			c_x = -29.5 
-			c_y = -0.1
-			r_x = 36
-			r_y = 3.5
-
-			r_x = r_x/2
 
 		q_x = data.orientation.x
 		q_y = data.orientation.y
@@ -134,8 +192,8 @@ class RosiCmdVelClass():
 		# Orientacao de quaternios para angulos de Euler
 		euler_angles = euler_from_quaternion([q_x, q_y, q_z, q_w])
 
-		self.pos_x  = (data.position.x - c_x)/r_x
-		self.pos_y = (data.position.y - c_y)/r_y
+		self.pos_x  = data.position.x
+		self.pos_y = data.position.y
 		self.angle = euler_angles[2] # Apenas o angulo de Euler no eixo z nos interessa
 
 # Funcao main

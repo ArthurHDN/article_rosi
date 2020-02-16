@@ -7,6 +7,8 @@
 		<rosparam command="load" file="$(find article_rosi)/config/simulation_parametersMAISLEVE.yaml" />
 		<!-- Indicator de rotina de toque. Nao altere -->
 		<param name="touch_mode" type="bool" value="False" />
+		<!-- Indicator de rotina de toque. Nao altere -->
+		<param name="a" type="double" value="0.0" />
 
 		<!-- Indicator de rotina de toque. Nao altere -->
 		<!-- param name="touch_mode" type="bool" value="False" /-->
