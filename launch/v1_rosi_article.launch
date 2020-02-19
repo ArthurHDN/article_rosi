@@ -1,17 +1,15 @@
 <launch>
 
 	<!-- - - - - Parametros usados - - - - - -->
+		<!-- Carregar arquivo com parametros para a simualacao no VREP -->
+		<rosparam command="load" file="$(find article_rosi)/config/simulation_parameters.yaml" />
+
 		<!-- Mostrar a imagem de profundidade do kinect. Sete para True caso queira ve-la -->
 		<param name="mostar_kinect_depth" type="bool" value="True" />
-		<!-- Carregar arquivo com parametros para a simualacao no VREP -->
-		<rosparam command="load" file="$(find article_rosi)/config/simulation_parametersMAISLEVE.yaml" />
 		<!-- Indicator de rotina de toque. Nao altere -->
 		<param name="touch_mode" type="bool" value="False" />
 		<!-- Indicator de rotina de toque. Nao altere -->
 		<param name="a" type="double" value="0.0" />
-
-		<!-- Indicator de rotina de toque. Nao altere -->
-		<!-- param name="touch_mode" type="bool" value="False" /-->
 
 		<!-- Mostrar a o fogo identificado. Sete para True caso queira ver -->
 		<!--param name="mostar_fire_cam" type="bool" value="False" /-->

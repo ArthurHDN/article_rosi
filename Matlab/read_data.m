@@ -1,6 +1,6 @@
 clear, clc, close all
 
-my_file_path = '~/vrep_ws/src/article_rosi/text/myfile.txt';
+my_file_path = '../text/myfile.txt';
 
 fileID = fopen(my_file_path,'r');
 formatSpec = '%f';
@@ -51,8 +51,8 @@ view(3)
 axis equal
 axis([-70 10 -10 10 -1 10])
 
-disp('Pressione alguma tecla para iniciar a animação')
-pause()
+% disp('Pressione alguma tecla para iniciar a animação')
+% pause()
 
 for i = 2:length(t)
    dt = t(i) - t(i-1);
