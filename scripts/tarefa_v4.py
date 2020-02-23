@@ -68,8 +68,6 @@ class RosiCmdVelClass():
 
 		THIS_FOLDER = os.path.dirname(os.path.abspath(__file__))
 		my_file_path = os.path.join(THIS_FOLDER, '../text/myfile.txt')
-
-		# write_handle = open('/home/arthur/vrep_ws/src/article_rosi/text/new.txt', 'w')
 		write_handle = open(my_file_path, 'w')
 		write_handle.write('')
 		write_handle.close()
@@ -77,18 +75,16 @@ class RosiCmdVelClass():
 		# Loop principal que manda as velocidades para o robo ate que ele chegue nas proximidades do ponto
 		while not rospy.is_shutdown():
 
-			# self.time += (1.0/freq)
-
 			self.verifica_a()
 
-			[V, W] = self.calc_vel()
+			[V, W, vx, vy] = self.calc_vel()
 			vel_msg.linear.x = V
 			vel_msg.angular.z = W
 
 			self.pub_cmd_vel.publish(vel_msg)
 			node_sleep_rate.sleep()
 			with open(my_file_path, 'a') as write_handle:
-			  	msg = str(self.time) + '\t' + str(self.pos_x) + '\t' + str(self.pos_y) + '\t' + str(self.angle) + '\t' + str(self.c_x) + '\t' + str(self.c_y) + '\t' + str(self.r_x) + '\t' + str(self.r_y) + '\t' + str(self.a) + '\n'
+			  	msg = str(self.time) + '\t' + str(self.pos_x) + '\t' + str(self.pos_y) + '\t' + str(self.angle) + '\t' + str(vx) + '\t' + str(vy) + '\t' + str(V) + '\t' + str(W) + '\t' + str(self.c_x) + '\t' + str(self.c_y) + '\t' + str(self.r_x) + '\t' + str(self.r_y) + '\t' + str(self.a) + '\n'
 			  	write_handle.write(msg)
 
 	def verifica_a(self):
@@ -147,10 +143,7 @@ class RosiCmdVelClass():
 				grad_fi = [ 2*(x-1) , 2*y]
 				Beta_fi = [-2*y , 2*(x-1)]
 				dFdy = 2*y
-			else:
-				# print('x,y:' + ' ' + str(self.pos_x) + ' ' + str(self.pos_y))
-				# print('Nao calculou')
-				return (0,0)
+
 		G = -2/pi * atan(8*fi)
 		H = sqrt(1 - G**2)
 
@@ -182,7 +175,7 @@ class RosiCmdVelClass():
 		V_forward = cos(self.angle) * vel_x + sin(self.angle) * vel_y
 		W_angular = (-sin(self.angle) / self.d) * vel_x + (cos(self.angle) / self.d) * vel_y
 
-		return (V_forward, W_angular)
+		return (V_forward, W_angular, vel_x, vel_y)
 
 	def callback_time(self, data):
 		self.time = data.data
