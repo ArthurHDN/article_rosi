@@ -11,10 +11,12 @@ y_vector = A(2:skip*3:end);
 z_vector = A(3:skip*3:end);
 clear A skip
 
-figure()
+figure('units','normalized','outerposition',[0 0 1 1])
 hold on
 grid on
 view([1,1,1])
+axis equal
+% TC_plot()
 
 for i = 1:length(x_vector)
     x = x_vector(i);

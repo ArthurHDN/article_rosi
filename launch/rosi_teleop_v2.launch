@@ -1,13 +1,16 @@
 <launch>
 
+	<!-- Mostrar a imagem de profundidade do kinect. Sete para True caso queira ve-la -->
+	<param name="mostar_kinect_depth" type="bool" value="True" />
+
 	<!-- No que transforma comandos do teclado em comandos de velocidade -->
 	<node name="vel_to_wheels" pkg="aai_robotics" type="vel_to_wheels.py" output = "screen" respawn="true" />
 
 	<!-- No que mostra a imagem de cores (RGB) do kinect -->
-	<node name="kinect_rgb_show" pkg="aai_robotics" type="kinect_rgb_show.py" output = "screen" respawn="true" />
+	<!--node name="kinect_rgb_show" pkg="aai_robotics" type="kinect_rgb_show.py" output = "screen" respawn="true" /-->
 
 	<!-- No que mostra a imagem de profundidade (DEPTH) do kinect -->
-	<node name="kinect_depth_show" pkg="aai_robotics" type="kinect_depth_show.py" output = "screen" respawn="true" />
+	<!--node name="kinect_depth_show" pkg="aai_robotics" type="kinect_depth_show.py" output = "screen" respawn="true" /-->
 
 	<!-- No que le o teclado -->
 	<node pkg="turtlesim" name="teleop_key" type="turtle_teleop_key">
@@ -15,6 +18,6 @@
 	</node>
 
 	<!-- Parametros da simulacao para rodar mais leve -->
-	<rosparam command="load" file="$(find aai_robotics)/config/simulation_parametersMAISLEVE.yaml" />
+	<rosparam command="load" file="$(find article_rosi)/config/simulation_parameters.yaml" />
 
 </launch>

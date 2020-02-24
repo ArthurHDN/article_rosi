@@ -22,6 +22,9 @@ from math import sin, cos, sqrt, atan, pi
 # path para escrever arquivos txt
 import os 
 
+from sensor_msgs.msg import PointCloud2
+import sensor_msgs.point_cloud2 as pc2
+
 # Classe que contem os metodos necessarios para o programa
 class RosiCmdVelClass():
 
@@ -31,6 +34,11 @@ class RosiCmdVelClass():
 	Err = 0.5 # Erro admitido de distancia ao ponto
 
 	curve_type = 2
+
+	r_min = 2.8
+	r_max = 10
+
+	disc_pontos = list()
 
 	# Construtor
 	def __init__(self):
@@ -43,6 +51,7 @@ class RosiCmdVelClass():
 		self.time = 0
 		self.t0 = 0
 		self.a = 0
+		rospy.set_param('a', 0)
 		self.b = 3.5
 		self.a_ant = self.a
 
@@ -57,6 +66,7 @@ class RosiCmdVelClass():
 		# Topicos que subscreve e publica
 		self.sub_pose = rospy.Subscriber('/aai_rosi_pose', Pose, self.callback_pose)
 		self.sub_time = rospy.Subscriber('/simulation/time', Float32, self.callback_time)
+		self.sub_disc = rospy.Subscriber('/aai_disc_cloud', PointCloud2, self.callback_disc)
 		self.pub_cmd_vel = rospy.Publisher('/aai_rosi_cmd_vel', Twist, queue_size=1)
 		# Frequencia de publicacao
 		node_sleep_rate = rospy.Rate(freq)
@@ -74,6 +84,8 @@ class RosiCmdVelClass():
 
 		# Loop principal que manda as velocidades para o robo ate que ele chegue nas proximidades do ponto
 		while not rospy.is_shutdown():
+
+			self.calcula_a()
 
 			self.verifica_a()
 
@@ -97,6 +109,37 @@ class RosiCmdVelClass():
 			self.b = self.r_y
 			self.a_ant = self.a
 			print('Valor de a atualizado')
+		if self.r_y <= self.r_min:
+			rospy.set_param('a', 0)
+			self.r_y = self.r_min
+		if self.r_y >= self.r_max:
+			rospy.set_param('a', 0)
+			self.r_y = self.r_max
+
+	def calcula_a(self):
+		L = 0.8
+		if len(self.disc_pontos) == 0:
+			rospy.set_param('a', 0)
+			return
+		esq = self.disc_pontos[0][1]
+		if self.disc_pontos[1][1] > esq:
+			p_esq = self.disc_pontos[1]
+			p_dir = self.disc_pontos[0]
+		else:
+			p_esq = self.disc_pontos[0]
+			p_dir = self.disc_pontos[1]
+
+		if p_esq[1] + L <= 0 or p_dir[1] - L >= 0:
+			rospy.set_param('a', 0)
+			return
+
+		if L + p_esq[1] < self.r_y - self.r_min:
+			rospy.set_param('a', -0.2)
+		else:
+			rospy.set_param('a', 0.2)
+
+
+
 
 
 	def calc_vel(self):
@@ -176,6 +219,12 @@ class RosiCmdVelClass():
 		W_angular = (-sin(self.angle) / self.d) * vel_x + (cos(self.angle) / self.d) * vel_y
 
 		return (V_forward, W_angular, vel_x, vel_y)
+
+	def callback_disc(self, data):
+		pontos = pc2.read_points_list(data, field_names = ("x", "y", "z"), skip_nans=True)
+		self.disc_pontos = list()
+		for p in pontos:
+			self.disc_pontos.append((p[0], p[1]))
 
 	def callback_time(self, data):
 		self.time = data.data
