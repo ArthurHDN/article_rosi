@@ -1,0 +1,20 @@
+my_file_path = '../text/velodynedata.txt';
+
+fileID = fopen(my_file_path,'r');
+formatSpec = '%f';
+A = fscanf(fileID,formatSpec);
+
+x_vector = A(1:3:end);
+y_vector = A(2:3:end);
+z_vector = A(3:3:end);
+clear A
+
+figure()
+hold on
+grid on
+view(3)
+
+for i = 1:length(x_vector)
+    
+    plot3()
+end

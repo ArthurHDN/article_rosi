@@ -8,7 +8,7 @@ fileID = fopen(my_file_path,'r');
 formatSpec = '%f';
 A = fscanf(fileID,formatSpec);
 
-skip = 15;
+skip = 20;
 states = 13;
 t = A(1:skip*states:end);
 x_vector = A(2:skip*states:end);
@@ -58,6 +58,7 @@ marcacao_t = text(0,0,15, 't =');
 view(3)
 axis equal
 axis([-70 10 -10 10 -1 10])
+view([10, 10, 10])
 
 % disp('Pressione alguma tecla para iniciar a animação')
 % pause()
@@ -128,7 +129,7 @@ ylabel('$ y (m) $', 'Interpreter', 'latex')
 grid on
 
 subplot(3,1,3)
-plot(t, theta_vector, 'b-')
+plot(t, unwrap(theta_vector), 'b-')
 title('$ \theta(t)$','Interpreter', 'latex')
 xlabel('$ t (s) $', 'Interpreter', 'latex')
 ylabel('$ \theta (rad) $', 'Interpreter', 'latex')
