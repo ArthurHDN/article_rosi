@@ -1,0 +1,15 @@
+<launch>
+
+    <!-- - - - - Parametros usados - - - - - -->
+		<!-- Carregar arquivo com parametros para a simualacao no VREP -->
+		<rosparam command="load" file="$(find article_rosi)/config/simulation_parameters.yaml" />
+
+	<!-- - - - - Nos - - - - - -->
+		<!-- Vizualização das nuvens de pontos no rviz -->
+		<node name="rviz" pkg="rviz" type="rviz" args="-d $(find article_rosi)/config/rviz_pointcloud.rviz" respawn="false" />
+	  	<!-- Filtro 1-->
+		<node name="Filter1" pkg="article_rosi" type="cloud_filter.py" output = "screen" respawn="false" />
+	  	<!-- Calcula as descontinuidades -->
+		<node name="DiscCloud" pkg="article_rosi" type="discontinuity_cloud.py" output = "screen" respawn="false" />
+		
+</launch>

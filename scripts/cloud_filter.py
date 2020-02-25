@@ -6,8 +6,6 @@ from sensor_msgs.msg import PointCloud2
 import sensor_msgs.point_cloud2 as pc2
 import os
 from math import sqrt
-# import ros_numpy
-# import pcl
 
 
 class cloud_filter():
@@ -37,8 +35,6 @@ class cloud_filter():
             # print('p = (', p[0], p[1], p[2],')')
             if p[2] >= -0.1 and p[2] <= 0.1 and sqrt(p[0]**2 + p[1]**2 + p[2]**2) > 0.5:
                 new_pontos.append(p)
-
-
         return pc2.create_cloud(self.old_cloud.header, self.old_cloud.fields, new_pontos)
 
 
