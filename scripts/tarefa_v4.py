@@ -38,9 +38,10 @@ class RosiCmdVelClass():
 	curve_type = 2 # Tipo da curva
 
 	r_min = 2.6 # Parametros da curva
-	r_max = 10
+	r_max = 8
 
 	disc_pontos = list() # Pontos de descontinuidade
+	rp_disc_pontos = list()
 
 	# Construtor
 	def __init__(self):
@@ -114,14 +115,14 @@ class RosiCmdVelClass():
 			self.t0 = self.time
 			self.b = self.r_y
 			self.a_ant = self.a
-			print('Valor de a atualizado')
+			#print('Valor de a atualizado')
 		if self.r_y <= self.r_min:
-			print('Valor de ry limitado inferiormente')
+			#print('Valor de ry limitado inferiormente')
 			rospy.set_param('a', 0)
 			self.r_y = self.r_min + 0.1
 			self.b = self.r_y
 		if self.r_y >= self.r_max:
-			print('Valor de ry limitado superiormente')
+			#print('Valor de ry limitado superiormente')
 			rospy.set_param('a', 0)
 			self.r_y = self.r_max - 0.1
 			self.b = self.r_y
@@ -129,21 +130,20 @@ class RosiCmdVelClass():
 	# Calcula a variacao no tempo -- MELHORAR
 	def calcula_a(self):
 		L = 0.8
-		Ka = 1
+		Ka = 2
 		if len(self.disc_pontos) == 0:
 			if (self.r_min - self.r_y)**2 > 0.01:
-				a = Ka*float((self.r_min - self.r_y)/10)
+				if self.r_min < self.r_y:
+					print('Caso 0.1.1')
+					a = -0.3
+				else:
+					print('Caso 0.1.2')
+					a = 0.3
 			else:
+				print('Caso 0.2')
 				a = 0.0
 			rospy.set_param('a', a)
 			return
-
-		elif len(self.disc_pontos) == 1:
-			p_dir = self.disc_pontos[0]
-			t_estrela = abs(p_dir[0] - self.pos_x)/0.5
-			a = Ka*float((self.r_y - (p_dir[1]-self.c_y) + L/2)/t_estrela)
-			rospy.set_param('a', a)
-
 
 		else:
 			p_dir = self.disc_pontos[0]
@@ -151,14 +151,43 @@ class RosiCmdVelClass():
 			for p in self.disc_pontos:
 				if (p[1] - self.c_y)**2 < (p_esq[1] - self.c_y)**2:
 					p_esq = p
-				if (p[1] - self.c_y)**2 > (p_dir[1] - self.c_y)**2:
+				if (p[1] - self.c_y)**2 > (p_dir[1]- self.c_y)**2:
 					p_dir = p
 
-			if (p_esq[1] - self.c_y)**2 > (self.r_y - self.c_y + L/2):
+			print(p_esq)
+			print(p_dir)
+
+			if abs(p_esq[1] - self.c_y) > abs(self.r_min  - self.c_y) + L/2:
+				if (self.r_min - self.r_y)**2 > 0.1**2:
+					if self.r_min < self.r_y:
+						t_estrela = abs(p_esq[0] - self.pos_x)/0.5
+						print('Caso 1.1.1')
+						a = -Ka*float( ( sqrt( (p_esq[1] - self.pos_y)**2 ) + L/2)/t_estrela)
+						if a < -0.5:
+							a = -0.5
+					else:
+						print('Caso 1.1.2')
+						a = 0.3
+				else:
+					print('Caso 1.1.3')
+					a = 0.0
+				rospy.set_param('a', a)
+				return
+			elif abs(p_dir[1] - self.c_y) < abs(self.pos_y - self.c_y) - L:
+				print('Caso 2')
+				a = 0.0
+				rospy.set_param('a', a)
 				return
 			else:
-				t_estrela = abs(p_dir[0] - self.pos_x)/0.5
-				a = Ka*float((self.r_y - (p_dir[1]-self.c_y) + L/2)/t_estrela)
+				print('Caso 3') 
+				if p_esq[0] < p_dir[0]:
+					x = p_esq[0]
+				else:
+					x = p_dir[0]
+				t_estrela = abs(x - self.pos_x)/0.5
+				a = Ka*float( ( sqrt( (p_dir[1] - self.pos_y)**2 ) + L/2)/t_estrela)
+				if a > 0.5:
+					a = 0.5
 				rospy.set_param('a', a)
 				return
 
@@ -250,15 +279,38 @@ class RosiCmdVelClass():
 		wp = (wf[0], wf[1])
 		return wp
 
+	def inTC(self, p):
+		x = p[0]
+		y = p[1]
+		if self.pos_y >= 0:
+			if y <= 2: # and y >= -2:# and x <= -1.7 and x >= -50 :
+				return True
+			else:
+				return False
+		elif self.pos_y < 0:
+			if y >= -2: # and y >= -2:# and x <= -1.7 and x >= -50 :
+				return True
+			else:
+				return False
+
 	# Callback pontos
 	def callback_disc(self, data):
 		pontos = pc2.read_points_list(data, field_names = ("x", "y", "z"), skip_nans=True)
 		self.disc_pontos = list()
+		self.rp_disc_pontos = list()
 		for p in pontos:
 			rp = (p[0], p[1])
 			wp = self.world_frame(rp) 
-			if (wp[1] - self.c_y)**2 > (self.r_min - 0.2)**2 and rp[0] > 0: 
-				self.disc_pontos.append(wp)
+			if True: #not self.inTC(wp):
+				if self.pos_y >= 0:
+					if self.pos_x > wp[0] - 0.1:
+						self.disc_pontos.append(wp)
+						self.rp_disc_pontos.append(rp)
+				else:
+					if self.pos_x < wp[0] + 0.1:
+						self.disc_pontos.append(wp)
+						self.rp_disc_pontos.append(rp)
+
 
 	# Callback do tempo
 	def callback_time(self, data):
@@ -277,6 +329,10 @@ class RosiCmdVelClass():
 		self.pos_x  = data.position.x
 		self.pos_y = data.position.y
 		self.angle = euler_angles[2] # Apenas o angulo de Euler no eixo z nos interessa
+		if self.pos_x < -42:
+			self.r_min = 3.5
+		else:
+			self.r_min = 2.6 
 
 # Funcao main
 if __name__ == '__main__':

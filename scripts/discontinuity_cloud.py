@@ -35,7 +35,7 @@ class cloud_filter():
         new_pontos = list()
 
         d_max = 10
-        d_trig = 3
+        d_trig = 1.5
 
         for k in range(270):
             encontrou = False

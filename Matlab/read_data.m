@@ -58,7 +58,7 @@ marcacao_t = text(0,0,15, 't =');
 view(3)
 axis equal
 axis([-70 10 -10 10 -1 10])
-view([10, 10, 10])
+
 
 % disp('Pressione alguma tecla para iniciar a animação')
 % pause()
@@ -70,6 +70,8 @@ legend('Curva', 'Posição', 'Orientação', 'Velocidade')
 % colormap copper
 % clear Gx Gy Gz
 TC_plot()
+
+view([10, 10, 30])
 
 for i = 2:length(t)
    dt = t(i) - t(i-1);

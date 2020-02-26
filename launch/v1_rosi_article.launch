@@ -28,7 +28,7 @@
 	  	<!-- No que le a posicao e gera comandos de velocidade -->
 		<node name="Campos_Vetorias" pkg="article_rosi" type="tarefa_v4.py" output = "screen" respawn="false" />
 		<!-- No que mostra a imagem de profundidade (DEPTH) do kinect-->
-		<node name="Profundidade_kinect" pkg="article_rosi" type="kinect_depth_show.py" output = "screen" respawn="true" />
+		<!--node name="Profundidade_kinect" pkg="article_rosi" type="kinect_depth_show.py" output = "screen" respawn="true" /-->
 		<!-- No que controla a posicao da camera pelo hokuyo -->
 		<node name="Coleta_TC" pkg="article_rosi" type="hokuyo_control.py" output = "screen" respawn="false" />
 
