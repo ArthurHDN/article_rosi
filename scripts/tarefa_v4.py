@@ -43,6 +43,8 @@ class RosiCmdVelClass():
 	disc_pontos = list() # Pontos de descontinuidade
 	rp_disc_pontos = list()
 
+	is_static = False
+
 	# Construtor
 	def __init__(self):
 		# Posicao (x, y, theta)
@@ -88,9 +90,10 @@ class RosiCmdVelClass():
 		# Loop principal que manda as velocidades para o robo ate que ele chegue nas proximidades do ponto
 		while not rospy.is_shutdown():
 
-			self.calcula_a() # Calcula a variacao do tempo
+			if not self.is_static:
+				self.calcula_a() # Calcula a variacao do tempo
 
-			self.verifica_a() # Verifica
+				self.verifica_a() # Verifica
 
 			[V, W, vx, vy] = self.calc_vel() # Calcula a velocidade
 			vel_msg.linear.x = V
@@ -329,10 +332,14 @@ class RosiCmdVelClass():
 		self.pos_x  = data.position.x
 		self.pos_y = data.position.y
 		self.angle = euler_angles[2] # Apenas o angulo de Euler no eixo z nos interessa
-		if self.pos_x < -42:
+		if self.is_static:
+			self.r_min = 3.5
+			self.a = 0
+		elif self.pos_x < -42:
 			self.r_min = 3.5
 		else:
 			self.r_min = 2.6 
+		
 
 # Funcao main
 if __name__ == '__main__':
