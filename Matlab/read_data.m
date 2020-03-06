@@ -4,7 +4,7 @@ clear, clc, close all
 X = 0;
 X = menu('Qual arquivo?', 'Obstacles', 'Free', 'Newest');
 
-SEE_ANIMATION = false;
+SEE_ANIMATION = true;
 
 switch X
     case 1
@@ -19,7 +19,7 @@ fileID = fopen(my_file_path,'r');
 formatSpec = '%f';
 A = fscanf(fileID,formatSpec);
 
-skip = 20;
+skip = 30;
 states = 13;
 t = A(1:skip*states:end);
 x_vector = A(2:skip*states:end);
@@ -74,13 +74,13 @@ r_y = r_y_vector(i);
 pos = plot3(x,y,0, 'ro', 'MarkerSize', 10, 'LineWidth', 2);
 orient = quiver(x,y, cos(theta), sin(theta), 'b', 'LineWidth', 2, 'AutoScaleFactor', 0.5);
 vel = quiver(x,y, vx, vy, 'g', 'LineWidth', 2, 'AutoScaleFactor', 0.5);
-marcacao_t = text(0,0,15, 't =');
+marcacao_t = text(0,-10,15, 't =');
 view(3)
 axis equal
 axis([-70 10 -10 10 -1 10])
 
 
-l = legend('Curva', 'Posi\c{c}\~{a}o', 'Orient\c{c}\~{a}o', 'Velocidade')
+l = legend('Curva', 'Posi\c{c}\~{a}o', 'Orient\c{c}\~{a}o', 'Velocidade');
 set(l,'Interpreter', 'latex')
 
 % [Gx Gy] = meshgrid(linspace(-70, 10, 20), linspace(-10, 10, 20));
@@ -91,6 +91,8 @@ set(l,'Interpreter', 'latex')
 TC_plot()
 
 view([10, 10, 30])
+
+pause(15)
 
 for i = 2:length(t)
    dt = t(i) - t(i-1);
@@ -119,20 +121,20 @@ end
 %% Graficos
 
 % r_y
-figure()
-subplot(2,1,1)
-plot(t, r_y_vector, 'k-')
-title('$ r_{y}(t)$','Interpreter', 'latex')
-xlabel('$ t (s) $', 'Interpreter', 'latex')
-ylabel('$ r_{y} (m) $', 'Interpreter', 'latex')
-grid on
-
-subplot(2,1,2)
-plot(t, a_vector, 'm-')
-title('$ dr_{y}(t)/dt$','Interpreter', 'latex')
-xlabel('$ t (s) $', 'Interpreter', 'latex')
-ylabel('$ a (m) $', 'Interpreter', 'latex')
-grid on
+% figure()
+% subplot(2,1,1)
+% plot(t, r_y_vector, 'k-')
+% title('$ r_{y}(t)$','Interpreter', 'latex')
+% xlabel('$ t (s) $', 'Interpreter', 'latex')
+% ylabel('$ r_{y} (m) $', 'Interpreter', 'latex')
+% grid on
+% 
+% subplot(2,1,2)
+% plot(t, a_vector, 'm-')
+% title('$ dr_{y}(t)/dt$','Interpreter', 'latex')
+% xlabel('$ t (s) $', 'Interpreter', 'latex')
+% ylabel('$ a (m) $', 'Interpreter', 'latex')
+% grid on
 
 %(x,y,theta)
 figure()
